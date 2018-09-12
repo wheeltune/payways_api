@@ -1,0 +1,7 @@
+pip-tools
+
+django
+django-environ
+djangorestframework
+
+psycopg2
