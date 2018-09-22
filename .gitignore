@@ -4,3 +4,5 @@ venv
 templates
 
 .env
+
+__pycache__
