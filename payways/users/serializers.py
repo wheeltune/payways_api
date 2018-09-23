@@ -9,6 +9,16 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('pk', 'username', 'first_name', 'last_name')
 
 
+class AddContactSerializer(serializers.Serializer):
+    contact_pk = serializers.IntegerField(required=True)
+
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass
+
+
 class UserFullSerializer(serializers.ModelSerializer):
     class Meta:
         model = PayWaysUser

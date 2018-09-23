@@ -5,10 +5,6 @@ urlpatterns = [
     path('auth/', include('rest_auth.urls')),
     path('auth/register/', include('rest_auth.registration.urls')),
 
-    path('users/', include('payways.users.urls')),
-    path('rooms/', include('payways.rooms.urls')),
-    path('invites/', include('payways.invites.urls')),
-    path('things/', include('payways.things.urls')),
-    # path('account/', include('payways.account.urls')),
-    # path('contacts/', include('payways.contacts.urls')),
+    path('', include('payways.api.urls_api')),
+    path('<int:request_user_pk>/', include('payways.api.urls_api')),
 ]

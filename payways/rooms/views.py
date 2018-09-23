@@ -6,37 +6,28 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 
 from . import models
 from . import serializers
-from .permissions import IsMember
+from .permissions import IsAuthenticated, IsAdminOrReadOnlyForMember, IsMember
 
-from ..users.permissions import IsSelf, IsSelfOrReadOnly
+from ..api.views import PayWaysApiView
 
 
-class GroupView(generics.RetrieveUpdateDestroyAPIView):
+class RoomView(generics.RetrieveUpdateDestroyAPIView):
     authentication_classes = (SessionAuthentication, BasicAuthentication)
-    permission_classes = (IsMember,)
+    permission_classes = (IsAuthenticated, IsAdminOrReadOnlyForMember)
 
     serializer_class = serializers.RoomSerializer
+    queryset = models.Room.objects.all()
     lookup_url_kwarg = 'room_pk'
 
-    def get_queryset(self):
-        return get_object_or_404(models.Room.objects, pk=self.kwargs['room_pk'])
 
-
-class GroupListView(generics.ListCreateAPIView):
+class RoomsListView(generics.ListCreateAPIView, PayWaysApiView):
     authentication_classes = (SessionAuthentication, BasicAuthentication)
-    permission_classes = (IsSelfOrReadOnly,)
+    permission_classes = (IsAuthenticated,)
 
     serializer_class = serializers.RoomSerializer
 
     def get_queryset(self):
-        groups_pk_filter = self.request.user.room_set.values_list('pk')
-        rooms_in_common = models.PayWaysUser.objects.get(
-            pk=self.kwargs['user_pk']
-        ).room_set.filter(
-            pk__in=groups_pk_filter
-        )
-
-        return rooms_in_common
+        return self.get_request_user().room_set.all()
 
     def create(self, request, *args, **kwargs):
         serializer = serializers.RoomSerializer(data=request.data)
@@ -52,20 +43,38 @@ class GroupListView(generics.ListCreateAPIView):
         return Response(status.HTTP_201_CREATED)
 
 
-class GroupMembersList(generics.ListAPIView):
-    authentication_classes = (SessionAuthentication, BasicAuthentication)
-    permission_classes = (IsMember,)
+class RoomsInCommonListView(RoomsListView):
+    def get_queryset(self):
+        request_user_group_pks = super().get_queryset().values_list('pk')
 
-    serializer_class = serializers.MemberSerializer
+        print(request_user_group_pks)
+
+        rooms_in_common = get_object_or_404(
+            models.PayWaysUser.objects,
+            pk=self.kwargs['user_pk']
+        ).room_set.filter(
+            pk__in=request_user_group_pks
+        )
+
+        print(rooms_in_common, self.kwargs['user_pk'])
+
+        return rooms_in_common
+
+
+class RoomMembersListView(generics.ListAPIView):
+    authentication_classes = (SessionAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated, IsMember)
+
+    serializer_class = serializers.UserSerializer
     lookup_url_kwarg = 'room_pk'
 
     def get_queryset(self):
         room = get_object_or_404(self.request.user.room_set, pk=self.kwargs['room_pk'])
         return room.members.all()
 
-
-class GroupInviteView(generics.CreateAPIView):
-    authentication_classes = (SessionAuthentication, BasicAuthentication)
-    permission_classes = (IsSelf,)
-
-    serializer_class = serializers.MemberSerializer
+#
+# class GroupInviteView(generics.CreateAPIView):
+#     authentication_classes = (SessionAuthentication, BasicAuthentication)
+#     permission_classes = (IsAuthenticated,)
+#
+#     serializer_class = serializers.MemberSerializer

@@ -1,47 +1,49 @@
-from rest_framework import generics, mixins
-from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
+
+from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.permissions import SAFE_METHODS
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 
 from . import models
 from . import serializers
-from . import permissions
+
+from ..api.permissions import IsAuthenticated
+from ..api.views import PayWaysApiView
+from ..rooms.views import RoomsInCommonListView
 
 
-class UserView(generics.RetrieveUpdateAPIView):
+class ContactsListView(generics.ListAPIView, PayWaysApiView):
     authentication_classes = (SessionAuthentication, BasicAuthentication)
-    permission_classes = (permissions.IsSelfOrReadOnly,)
-
-    lookup_url_kwarg = 'user_pk'
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        return models.PayWaysUser.objects.filter(pk=self.kwargs['user_pk'])
+        return self.get_request_user().contacts.all()
+
+    def get_serializer_class(self, *args, **kwargs):
+        if self.request.method not in SAFE_METHODS:
+            return serializers.AddContactSerializer
+        return serializers.UserSerializer
+
+    def put(self, response, *args, **kwargs):
+        to_user = get_object_or_404(models.PayWaysUser.objects, pk=response.data['contact_pk'])
+        from_user = self.get_request_user()
+
+        return Response(models.Friendship.objects.get_or_create(from_user=from_user, to_user=to_user))
+
+
+class UserView(generics.RetrieveAPIView, PayWaysApiView):
+    authentication_classes = (SessionAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated, )
+
+    def get_queryset(self):
+        return models.PayWaysUser.objects.filter(pk=self.kwargs['pk'])
 
     def get_serializer_class(self):
-        if self.kwargs['user_pk'] == self.request.user.pk:
+        if self.kwargs['pk'] == self.get_request_user_pk():
             return serializers.UserFullSerializer
         else:
             return serializers.UserSerializer
-
-    # def get(self, request, pk, format=None):
-    #     profile = self.get_object()
-    #     is_authenticated = request.user.is_authenticated
-    #
-    #     if is_authenticated and pk == request.user.pk:
-    #         serializer = serializers.UserFullSerializer(
-    #             profile,
-    #             context={"request": request},
-    #         )
-    #     else:
-    #         serializer = serializers.UserSerializer(
-    #             profile,
-    #             context={"request": request}
-    #         )
-    #
-    #     return Response(serializer.data)
-
-    # def post(self, request, *args, **kwargs):
-    #     return self.update(request, *args, **kwargs)
 
 # class UserGroupsListView(APIView):
 #     serializer_class = serializers.UserGroupsSerializer
