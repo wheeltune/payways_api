@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/2.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.1/ref/settings/
 """
-
 import environ
 
 # Build paths inside the payways like this: os.path.join(BASE_DIR, ...)
@@ -59,8 +58,10 @@ THIRD_PARTY_APPS = (
 
 LOCAL_APPS = (
     'payways.api',
+    'payways.invites',
     'payways.users',
     'payways.rooms',
+    'payways.things'
 )
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

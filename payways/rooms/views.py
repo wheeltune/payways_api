@@ -5,6 +5,9 @@ from rest_framework.response import Response
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 
 from . import models
+from ..things.models import Thing
+from ..things.serializers import ThingSerializer
+
 from . import serializers
 from .permissions import IsAuthenticated, IsAdminOrReadOnlyForMember, IsMember
 
@@ -72,9 +75,37 @@ class RoomMembersListView(generics.ListAPIView):
         room = get_object_or_404(self.request.user.room_set, pk=self.kwargs['room_pk'])
         return room.members.all()
 
-#
-# class GroupInviteView(generics.CreateAPIView):
-#     authentication_classes = (SessionAuthentication, BasicAuthentication)
-#     permission_classes = (IsAuthenticated,)
-#
-#     serializer_class = serializers.MemberSerializer
+
+class RoomThingsListView(generics.ListCreateAPIView, PayWaysApiView):
+    authentication_classes = (SessionAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated, IsMember)
+
+    lookup_url_kwarg = 'room_pk'
+
+    def get_queryset(self):
+        return Thing.objects.filter(from_room_id=self.kwargs['room_pk']).all()
+
+    def get_serializer_class(self, *args, **kwargs):
+        request_user_membership = get_object_or_404(
+            models.Room.objects,
+            pk=self.kwargs['room_pk']
+        ).membership_set.get(
+            user_id=self.get_request_user_pk()
+        )
+
+        if request_user_membership.is_admin:
+            return serializers.RoomThingAdminSerializer
+        else:
+            return serializers.RoomThingSerializer
+
+    def perform_create(self, serializer):
+        request_user_pk = self.get_request_user_pk()
+
+        additional_data = {
+            'added_by_id': request_user_pk,
+            'from_room_id': self.kwargs['room_pk']
+        }
+        if serializer.validated_data.get('buyer', None) is None:
+            additional_data['buyer_id'] = request_user_pk
+
+        serializer.save(**additional_data)

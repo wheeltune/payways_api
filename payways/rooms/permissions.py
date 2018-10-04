@@ -3,8 +3,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 from . import models
-
 from ..api.permissions import IsAuthenticated
+
 
 class IsMember(BasePermission):
     def get_request_user(self, request, view):
@@ -17,13 +17,9 @@ class IsMember(BasePermission):
             return request.user
 
     def has_permission(self, request, view):
-        try:
-            user_membership = self.get_request_user(request, view).membership_set.get(
-                room_id=view.kwargs["room_pk"]
-            )
-        except models.Membership.DoesNotExist:
-            return False
-        return True
+        return self.get_request_user(request, view).membership_set.filter(
+            room_id=view.kwargs["room_pk"]
+        ).exists()
 
 
 class IsAdminOrReadOnlyForMember(BasePermission):
