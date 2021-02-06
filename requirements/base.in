@@ -5,6 +5,7 @@ django-environ
 django-allauth
 django-rest-auth
 djangorestframework
+django-cors-headers
 drfapikey
 
 psycopg2-binary

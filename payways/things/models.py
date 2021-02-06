@@ -18,3 +18,5 @@ class Thing(models.Model):
 class Useship(models.Model):
     thing = models.ForeignKey(Thing, on_delete=models.PROTECT)
     user = models.ForeignKey(PayWaysUser, on_delete=models.PROTECT)
+
+    weight = models.FloatField()
