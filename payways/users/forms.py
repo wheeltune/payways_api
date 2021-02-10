@@ -13,4 +13,4 @@ class UserCreationForm(forms.UserCreationForm):
 class UserChangeForm(forms.UserChangeForm):
     class Meta:
         model = PayWaysUser
-        fields = forms.UserChangeForm.Meta.fields
+        fields = ('username', 'email', 'first_name', 'last_name')

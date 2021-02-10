@@ -1,25 +1,20 @@
 from rest_framework import serializers, validators
 
-from .models import PayWaysUser
+from . import models
+
+
+class UserField(serializers.PrimaryKeyRelatedField):
+    def get_queryset(self):
+        return models.PayWaysUser.objects.all()
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = PayWaysUser
+        model = models.PayWaysUser
         fields = ('pk', 'username', 'first_name', 'last_name')
-
-
-class AddContactSerializer(serializers.Serializer):
-    contact_pk = serializers.IntegerField(required=True)
-
-    def create(self, validated_data):
-        pass
-
-    def update(self, instance, validated_data):
-        pass
 
 
 class UserFullSerializer(serializers.ModelSerializer):
     class Meta:
-        model = PayWaysUser
+        model = models.PayWaysUser
         fields = ('pk', 'username', 'first_name', 'last_name', 'telegram_id', 'vk_id')

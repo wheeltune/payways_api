@@ -10,7 +10,6 @@ from .permissions import IsAuthenticated, IsAdminOrBuyerOrReadOnlyForRelatedRoom
 
 
 class ThingView(generics.RetrieveUpdateDestroyAPIView):
-    authentication_classes = (SessionAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated, IsAdminOrBuyerOrReadOnlyForRelatedRoomMember)
 
     serializer_class = serializers.ThingSerializer
@@ -19,7 +18,6 @@ class ThingView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ThingsListView(generics.ListCreateAPIView):
-    authentication_classes = (SessionAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated, IsRelatedRoomMember)
 
     serializer_class = serializers.ThingSerializer

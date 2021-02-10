@@ -11,6 +11,8 @@ class IsRelatedRoomMember(BasePermission):
         return view.kwargs.get('request_user_pk', request.user.pk)
 
     def has_permission(self, request, view):
+        if 'kwargs' not in dir(self) or 'room_pk' not in self.kwargs:
+            return False
         thing = get_object_or_404(
             models.Thing.objects,
             pk=view.kwargs['thing_pk']
@@ -27,6 +29,8 @@ class IsAdminOrBuyerOrReadOnlyForRelatedRoomMember(BasePermission):
         return view.kwargs.get('request_user_pk', request.user.pk)
 
     def has_permission(self, request, view):
+        if 'kwargs' not in dir(self) or 'room_pk' not in self.kwargs:
+            return False
         thing = get_object_or_404(
             models.Thing.objects,
             pk=view.kwargs['thing_pk']

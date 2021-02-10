@@ -18,6 +18,4 @@ class PayWaysUser(AbstractUser):
 class Friendship(models.Model):
     from_user = models.ForeignKey(PayWaysUser, on_delete=models.CASCADE,
                                   related_name='from_user')
-
     to_user = models.ForeignKey(PayWaysUser, on_delete=models.CASCADE)
-

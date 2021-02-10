@@ -17,30 +17,32 @@ class IsMember(BasePermission):
             return request.user
 
     def has_permission(self, request, view):
+        if 'kwargs' not in dir(self) or 'room_pk' not in self.kwargs:
+            return False
         return self.get_request_user(request, view).membership_set.filter(
-            room_id=view.kwargs["room_pk"]
+            room__pk=view.kwargs['room_pk']
         ).exists()
 
 
-class IsAdminOrReadOnlyForMember(BasePermission):
-    def get_request_user(self, request, view):
-        if 'request_user_pk' in view.kwargs:
-            return get_object_or_404(
-                models.PayWaysUser.objects,
-                pk=view.kwargs['request_user_pk']
-            )
-        else:
-            return request.user
+# class IsAdminOrReadOnlyForMember(BasePermission):
+#     def get_request_user(self, request, view):
+#         if 'request_user_pk' in view.kwargs:
+#             return get_object_or_404(
+#                 models.PayWaysUser.objects,
+#                 pk=view.kwargs['request_user_pk']
+#             )
+#         else:
+#             return request.user
 
-    def has_permission(self, request, view):
-        try:
-            user_membership = self.get_request_user(request, view).membership_set.get(
-                room_id=view.kwargs["room_pk"]
-            )
-        except models.Membership.DoesNotExist:
-            return False
+#     def has_permission(self, request, view):
+#         try:
+#             user_membership = self.get_request_user(request, view).membership_set.get(
+#                 room__pk=view.kwargs["room_pk"]
+#             )
+#         except models.Membership.DoesNotExist:
+#             return False
 
-        return user_membership.is_admin or request.method in SAFE_METHODS
+#         return user_membership.is_admin or request.method in SAFE_METHODS
 
 # class IsAdminOrReadOnly(BasePermission):
 #     def get_request_user_pk(self, request, view):

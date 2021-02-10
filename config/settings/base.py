@@ -9,28 +9,29 @@ https://docs.djangoproject.com/en/2.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.1/ref/settings/
 """
-import environ
+import datetime
+import os
+from pathlib import Path
 
 # Build paths inside the payways like this: os.path.join(BASE_DIR, ...)
-ROOT_DIR = environ.Path(__file__) - 3
-APPS_DIR = ROOT_DIR.path('payways')
+ROOT_DIR = Path(__file__).resolve().parents[2]
+APPS_DIR = ROOT_DIR / 'payways'
 
 
-env = environ.Env()
-# This section added from an update to standards in CookieCutter Django to ensure no errors are
-# encountered at runserver/migrations
-READ_DOT_ENV_FILE = env.bool('DJANGO_READ_DOT_ENV_FILE', default=False)
-if READ_DOT_ENV_FILE:
-    env_file = str(ROOT_DIR.path('.env'))
-    print('Loading : {}'.format(env_file))
-    env.read_env(env_file)
-    print('The .env file has been loaded. See base.py for more information')
+# Load local environment
+try:
+    import dotenv
+    DOTENV_FILE = ROOT_DIR / '.env'
+    if DOTENV_FILE.is_file():
+        dotenv.load_dotenv(DOTENV_FILE)
+except:
+    pass
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool('DJANGO_DEBUG', default=False)
+DEBUG = os.getenv('DJANGO_DEBUG', '0') == '1'
 
 # Application definition
 DJANGO_APPS = (
@@ -44,35 +45,25 @@ DJANGO_APPS = (
 )
 
 THIRD_PARTY_APPS = (
-    'corsheaders',
-
     'rest_framework',
-    'rest_framework.authtoken',
-
-    'rest_auth',
-    'rest_auth.registration',
-
-    'allauth',
-    'allauth.account',
-
-    # 'rest_framework_api_key',
+    'rest_registration',
+    'drf_yasg',
 )
 
 LOCAL_APPS = (
     'payways.api',
+    'payways.contacts',
     'payways.invites',
     'payways.users',
     'payways.rooms',
-    'payways.things'
+    'payways.things',
 )
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
-
     'django.middleware.security.SecurityMiddleware',
+    # 'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -108,11 +99,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': env("POSTGRES_NAME"),
-        'USER': env("POSTGRES_USER"),
-        'PASSWORD': env("POSTGRES_PASSWORD"),
-        'HOST': env("POSTGRES_HOST"),
-        'PORT': env("POSTGRES_PORT"),
+        'NAME': os.getenv('POSTGRES_NAME'),
+        'USER': os.getenv('POSTGRES_USER'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+        'HOST': os.getenv('POSTGRES_HOST'),
+        'PORT': os.getenv('POSTGRES_PORT'),
     }
 }
 
@@ -136,6 +127,12 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# Jwt token settings
+JWT_AUTH = {
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=3000),
+}
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
 
@@ -154,28 +151,37 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = str(ROOT_DIR('staticfiles'))
+STATIC_ROOT = str(ROOT_DIR / 'staticfiles')
 STATICFILES_DIRS = (
-    str(APPS_DIR.path('static')),
+    str(APPS_DIR / 'static'),
 )
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
 MEDIA_URL = '/media/'
-MEDIA_ROOT = str(APPS_DIR('media'))
+MEDIA_ROOT = str(APPS_DIR / 'media')
 
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-    )
-    # 'DEFAULT_PERMISSION_CLASSES': (
-    #     'rest_framework_api_key.permissions.HasAPIAccess',
-    # )
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema'
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 SITE_ID = 1
+
+
+REST_REGISTRATION = {
+    'REGISTER_VERIFICATION_ENABLED': False,
+    'RESET_PASSWORD_VERIFICATION_ENABLED': False,
+    'REGISTER_EMAIL_VERIFICATION_ENABLED': False,
+}
