@@ -1,5 +1,4 @@
 import os
-os.environ["DJANGO_READ_DOT_ENV_FILE"] = "true"
 from .base import *
 
 # SECURITY WARNING: keep the secret key used in production secret!

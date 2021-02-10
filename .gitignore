@@ -9,3 +9,5 @@ templates
 __pycache__
 
 .vscode
+
+staticfiles
