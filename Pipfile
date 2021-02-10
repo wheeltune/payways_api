@@ -11,6 +11,7 @@ python-dotenv = "*"
 djangorestframework-simplejwt = "*"
 django-rest-registration = "*"
 drf-yasg = "*"
+gunicorn = "*"
 
 [dev-packages]
 
