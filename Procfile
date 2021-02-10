@@ -1,1 +1,1 @@
-web: gunicorn payways.wsgi --log-file -
+web: gunicorn payways.config.wsgi --log-file -
