@@ -17,6 +17,8 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).resolve().parents[2]
 APPS_DIR = ROOT_DIR / 'payways'
 
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', default='b-eaqe=c(s79x1f+elyut9^_6xw8jmvz#^d76ot52r87e119j7')
 
 # Load local environment
 try:
