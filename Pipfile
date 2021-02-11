@@ -12,6 +12,7 @@ djangorestframework-simplejwt = "*"
 django-rest-registration = "*"
 drf-yasg = "*"
 gunicorn = "*"
+whitenoise = "*"
 
 [dev-packages]
 
